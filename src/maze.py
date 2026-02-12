@@ -1,11 +1,20 @@
 
+from collections import deque
+
+
 class Maze:
-    def __init__(self, filename):
+    def __init__(self, filename=None, grid=None, start_pos=None, end_pos=None):
         self.filename = filename
         self.grid = []
         self.start_pos = None
         self.end_pos = None
-        self.load_maze()
+
+        if grid is not None:
+            self.grid = grid
+            self.start_pos = start_pos
+            self.end_pos = end_pos
+        elif filename:
+            self.load_maze()
 
     def load_maze(self):
         """Loads the maze from a file."""
@@ -51,3 +60,21 @@ class Maze:
 
     def is_exit(self, r, c):
         return (r, c) == self.end_pos
+
+    def shortest_path(self, start, end):
+        """BFS to find shortest path from start to end. Returns list of (r,c) positions."""
+        if start == end:
+            return [start]
+        visited = {start}
+        queue = deque([(start, [start])])
+        while queue:
+            (r, c), path = queue.popleft()
+            for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nr, nc = r + dr, c + dc
+                if not self.is_wall(nr, nc) and (nr, nc) not in visited:
+                    new_path = path + [(nr, nc)]
+                    if (nr, nc) == end:
+                        return new_path
+                    visited.add((nr, nc))
+                    queue.append(((nr, nc), new_path))
+        return []  # No path found
